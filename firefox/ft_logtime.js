@@ -68,10 +68,34 @@ function getDataUrl(domainName) {
 function reduceDaysToMonths(out) {
     let monthsLogtimes = {};
     for (const [key, value] of Object.entries(out)) {
-        let time = value.replace(/[^0-9:.]/g, "");
+        let time = value.replace(/[^0-9:.]/g, "")
         time = time.split(":");
         time[2] = time[2].split(".")[0];
-        let date = key.substring(0, 7);
+
+        // New code to start month 27 each month at 00h00 to 26 next month at 23h59
+        const dateSplit = key.split("-");
+        let year = Number.parseInt(dateSplit[0]);
+        let month = Number.parseInt(dateSplit[1]);
+        const day = Number.parseInt(dateSplit[2]);
+
+        if (day >= 27)
+        {
+            // add to next month
+            month++;
+            if (month > 12)
+            {
+                month = 1;
+                year++;
+            }
+        }
+
+        let date = year.toString()  + "-" + month.toString().padStart(2, "0");
+        // End of new code
+
+        // Archive
+        // let date = key.substring(0, 7);
+        // console.log("Old date: " + date + ", New date: " + newDate + " day is " + key);
+
         if (!Array.isArray(monthsLogtimes[date])) {
             monthsLogtimes[date] = [];
         }
