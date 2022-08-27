@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "ft_logtime_nice",
-    "version": "2.0",
+    "version": "1.0",
     "description": "Calculates your logtime at https://intra.42.fr. Customized for all 42 students on the Nice campus",
     "icons": {
         "48": "icons/42-logo.png"
