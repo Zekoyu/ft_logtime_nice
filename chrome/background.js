@@ -8,8 +8,6 @@ async function main() {
         let logtimeSumPerMonth = sumUpDailyLogtimes(
             reduceDaysToMonths(json)
         );
-
-        console.log(logtimeSumPerMonth);
     }
 }
 
@@ -54,12 +52,59 @@ function reduceDaysToMonths(out) {
 
 function sumUpDailyLogtimes(monthsLogtimes) {
     let logtimeSumPerMonth = {};
-    for (const [date, times] of Object.entries(monthsLogtimes)) {
+    let excessTime = 0;
+
+    // add reverse for chronological order
+    for (const [date, times] of Object.entries(monthsLogtimes).reverse()) {
         let time = sumTime(times).split(":");
-        time = time[0] + "h " + time[1] + "m " + time[2] + "s";
-        logtimeSumPerMonth[date] = time;
+        let addedTimeThisMonthSeconds = 0;
+
+        // New code to add bonus hours to next month (capped at 70)
+        let timeInSeconds = Number.parseInt(time[0]) * 3600 + Number.parseInt(time[1]) * 60 + Number.parseInt(time[2]);
+
+        // if more than 140 hours
+        if (timeInSeconds > 60*60*140)
+        {
+            excessTime += (timeInSeconds - 60*60*140);
+
+            // if excesss time is more than 70 hours (cap)
+            if (excessTime > 60*60*70)
+                excessTime = 60*60*70;
+        }
+        // Add excess time if needed
+        else
+        {
+            const missingTime = 60*60*140 - timeInSeconds;
+
+            // Too little excess time to finish month
+            if (missingTime > excessTime)
+            {
+                timeInSeconds += excessTime;
+                addedTimeThisMonthSeconds = excessTime;
+                excessTime = 0;
+            }
+            // Still have excess time after adding it
+            else
+            {
+                timeInSeconds += missingTime;
+                addedTimeThisMonthSeconds = missingTime;
+                excessTime -= missingTime;
+            }
+        }
+
+        const hoursThisMonthString = Math.floor(timeInSeconds / 3600) + "h" + Math.floor((timeInSeconds % 3600) / 60) + "m" + Math.floor(timeInSeconds % 60) + "s";
+        const addedTimeString = Math.floor(addedTimeThisMonthSeconds / 3600) + "h" + Math.floor((addedTimeThisMonthSeconds % 3600) / 60) + "m" + Math.floor(addedTimeThisMonthSeconds % 60) + "s";
+        const newTime = `${hoursThisMonthString} (${addedTimeString})`;
+
+        logtimeSumPerMonth[date] = newTime;
+
+        // time = time[0] + "h " + time[1] + "m " + time[2] + "s";
+        // logtimeSumPerMonth[date] = time;
     }
-    return logtimeSumPerMonth;
+
+    // revese back to latest first order
+    return Object.fromEntries(Object.entries(logtimeSumPerMonth).reverse());
+    // return logtimeSumPerMonth;
 }
 
 function sumTime(array) {
